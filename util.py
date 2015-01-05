@@ -39,10 +39,10 @@ def test_names(test_cases, testIds):
 
 def load(db_file):
     conn = sqlite3.connect(db_file)
-    mutants = pd.read_sql("select * from mutants", conn)
-    testcases = pd.read_sql("select * from testcases", conn)
+    mutants = pd.read_sql("select * from mutants", conn, index_col='mutantId')
+    testcases = pd.read_sql("select * from testcases", conn, index_col='testId')
     mutcoverage = pd.read_sql("select * from mutcoverage", conn)
-
+    conn.close()
     return {'mutants': mutants,
             'testcases': testcases,
             'mut_coverage': mutcoverage}
