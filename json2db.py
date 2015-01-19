@@ -2,6 +2,8 @@ import json
 import sqlite3
 import sys
 from progressbar import ProgressBar, Percentage, RotatingMarker, Bar
+import psutil
+
 # json_file = sys.argv[1]
 # db_name = sys.argv[2]
 
@@ -72,13 +74,22 @@ def do(db_name, json_file):
     conn.close()
 
 
+def do_stuff(f):
+    print 'doing', j
+    parts = j.split('.')
+    db_name = ''.join(parts[:-1]) + '.sqlite'
+    if db_name + '.db' not in glob.glob(dir_name + "*.db"):
+    	do(db_name, j)	
+    except TypeError:
+	print "Couldn't  finish {0}".format(db_name)
+
+
+
 def dir_stuff(dir_name):
     import glob
-    for j in glob.glob(dir_name + "*.json"):
-        print 'doing', j
-        parts = j.split('.')
-        db_name = ''.join(parts[:-1]) + '.sqlite'
-	if db_name + '.db' not in glob.glob(dir_name + "*.db"):
-      	     do(db_name, j)	
+    ncpu = psutil.cpu_count()/2
+    print 'number of cpus we are using: {}'.format(ncpu)
+    pprocess.pmap(do_stuff, glob.glob(dir_name + "*.json", limit=ncpu)
+        
 
 dir_stuff(sys.argv[1])
