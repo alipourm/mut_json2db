@@ -5,6 +5,14 @@ import matplotlib.pyplot as plt
 
 
 
+def union_df(df):
+    k = set()
+    for e in df:
+        k.add(e)
+    return k
+
+
+
 
 def get_min_tests_to_cover(mut_coverage, mutants, tests):
     selected_tests = []
@@ -33,9 +41,6 @@ def test_names(test_cases, testIds):
     return list(test_cases[test_cases['testId'].isin(testIds)]['tc_name'])
    
  
-
-
-
 
 def load(db_file):
     conn = sqlite3.connect(db_file)

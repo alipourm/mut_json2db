@@ -2,8 +2,12 @@ import json
 import sqlite3
 import sys
 from progressbar import ProgressBar, Percentage, RotatingMarker, Bar
-json_file = sys.argv[1]
-db_name = sys.argv[2]
+# json_file = sys.argv[1]
+# db_name = sys.argv[2]
+
+
+
+
 
 def create_db(db_name):
     return sqlite3.connect('{0}.db'.format(db_name))
@@ -18,7 +22,7 @@ def create_tables(cursor):
                         (testId integer, tc_name text)''')
     cursor.execute('''create table mutcoverage
                         (testId integer,
-                         mutantid integer,
+                         mutantId integer,
                          isCovered integer)
                     ''')
 
@@ -58,12 +62,23 @@ def load_data(json_file, cursor):
         pbar.update(i)
     pbar.finish()
 
-conn = create_db(db_name)
 
-cursor = conn.cursor()
+def do(db_name, json_file):
+    conn = create_db(db_name)
+    cursor = conn.cursor()
+    create_tables(cursor)
+    load_data(json_file, cursor)
+    conn.commit()
+    conn.close()
 
-create_tables(cursor)
-load_data(json_file, cursor)
 
-conn.commit()
-conn.close()
+def dir_stuff(dir_name):
+    import glob
+    for j in glob.glob(dir_name + "*.json"):
+        print 'doing', j
+        parts = j.split('.')
+        db_name = ''.join(parts[:-1]) + '.sqlite'
+	if db_name + '.db' not in glob.glob(dir_name + "*.db"):
+      	     do(db_name, j)	
+
+dir_stuff(sys.argv[1])

@@ -1,4 +1,5 @@
-from sklearn import tree
+
+from sklearn import tree, cluster
 import pandas as pd
 import matplotlib.pyplot as plt
 import StringIO
@@ -11,6 +12,8 @@ import sys
 import re
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D, axes3d
+import itertools
+from scipy import sparse
 
 
 def standardize(A):
@@ -21,30 +24,91 @@ def allcombinations(featurset):
     raise NotImplemented
 
 
+def groups2csv(data, prefix):
+    tags = ['function', 'operator', 'class']
 
-def learn_dtree(data, image_prefix):
+    combinations = []
+    for i in range(1, len(tags)+1):
+        items = itertools.combinations(tags, i)
+        for it in items:
+            combinations.append(list(it))
+    print combinations
+
+    comb_names = map(lambda l: ''.join(map(lambda s: s[0],l)), combinations)
+    tasks = zip(combinations, comb_names)
+    for c in tasks:
+        print c
+        k = data.groupby(c[0])
+        f = k['isCovered'].agg({'mean_kill': np.mean, 'number of mutants': len, 'number of killed':np.sum})
+        f.to_csv(prefix + c[1] + '.csv')
+
+
+def unionDF(df):
+    # d = sparse.dok_matrix((1, 100000))
+    # print df
+    # for e in df:
+    #     print e
+    #     d[0, e] = 1
+    # return d.tocsc()
+    k = []
+    for e in df:
+        k.append(e)
+    return str(sorted(k))
+
+def mut_dist(m1, m2):
+    print 'type:', type(m1)
+    # return
+    return max(m1.difference(m2), m2.difference(m1))
+
+
+def meanDFs(df1, df2):
+    np.union1d(df1,df2)
+
+
+def precompute(mat):
+    k = pd.Series()
+   # nd = np.ndarray(, 3)
+
+
+def identity(x):
+    return x
+
+def clustering(mut_coverage):
+    killed = mut_coverage[mut_coverage['isCovered'] == 1]
+    groupby = killed.groupby(['mutantId'])
+    f = groupby['testId'].agg({'set': unionDF})
+
+    # clf = cluster.AgglomerativeClustering(n_clusters=2,
+    #                                               affinity=mut_dist,
+    #                                               # memory=Memory(cachedir=None),
+    #                                               connectivity=None,
+    #                                               n_components=None,
+    #                                               compute_full_tree='auto',
+    #                                               linkage='average',
+    #                                               pooling_func=unionDF)
+    # clf.fit(f)
+
+    # print f
+
+    # groupby = killed.groupby(['class'])
+    # f = groupby['mutantId'].apply
+
+    g = f.groupby(['set'])
+    print groupby.size()
+
+def learn_dtree(data, csvfile):
     clf = tree.DecisionTreeClassifier(criterion='entropy', max_depth=4)
-    
-  #  print len(data), len(data['operator'])
-    data['mf'] = data['class'] + ' ' + data['method']
-    k = data.groupby(['mf'])
-
-#    k = data.groupby(['operator'])
-    f = k['isCovered'].agg({'mean': np.mean, 'len': len, 'sum':np.sum})
-    ff = lambda x: x.line
-    gg = lambda y: y-np.min(y)
-    f
-    g = k['line'].agg({'max': np.max, 'min':np.min})
-    print 'g:', g
+    k = data.groupby(['operator'])
+   # k = data.groupby(['operator'])
+    f = k['isCovered'].agg({'mean_kill': np.mean, 'number of mutants': len, 'number of killed':np.sum})
+    f.to_csv(csvfile)
     fig = plt.figure()
-
     # ax = Axes3D(fig)
     # ax = fig.add_subplot(111, projection='3d')
-
-    plt.scatter(standardize (f['mean']),f['len'])
+    plt.scatter(standardize (f['mean']),f['sum'])
     plt.ylabel('mutant_size')
     plt.xlabel('expected_kill (standatdize)')
-#    print f[f['len'] > 25000] 
+    # print f[f['len'] > 25000] 
     # ax.set_xlabel('mean')
     # ax.set_ylabel('len')
     # ax.set_zlabel('sum')
@@ -56,10 +120,10 @@ def learn_dtree(data, image_prefix):
     #   print m,len(k.groups[m]),
     data['op'] = pd.factorize(data['operator'])[0]
     data['m'] = pd.factorize(data['method'])[0]
-    data['c'] = pd.factorize(data['class'])[0]
+    HLdata['c'] = pd.factorize(data['class'])[0]
 
     # plt.show()
-    # plt.close()
+    plt.close()
     x = data[['op', 'c', 'testId']].values
     y = data['isCovered'].values
     clf.fit(x,y)
@@ -87,12 +151,17 @@ def main(file_name):
     data['operator'] = map(lambda s: re.sub(r'experimental.RemoveSwitchMutator.*', 'experimental.RemoveSwitchMutator', s), data['ope'])
     return data
 
+sys.argv = ['', 'data/com_lang.db', 'lang_']
+db1 = 'data/com_lang.db'
+db_file = sys.argv[1]
+prefix = sys.argv[2]
+data = main(db_file)
+data['function'] = data['class'] + ' ' + data['method']
+# groups2csv(data, prefix)
+# dot = learn_dtree(data, prefix)
+# open(prefix + '.dot', 'w').write(dot)
 
-#db1 = 'data/com_lang.db'
-#k = main(sys.argv[1])
-#dot = learn_dtree(k, sys.argv[2])
-# open(sys.argv[3], 'w').write(dot)
-
+clustering(data)
 
 
 
