@@ -79,7 +79,8 @@ def do_stuff(f):
     parts = j.split('.')
     db_name = ''.join(parts[:-1]) + '.sqlite'
     if db_name + '.db' not in glob.glob(dir_name + "*.db"):
-    	do(db_name, j)	
+    try:
+	do(db_name, j)	
     except TypeError:
 	print "Couldn't  finish {0}".format(db_name)
 
