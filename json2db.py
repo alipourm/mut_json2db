@@ -89,7 +89,7 @@ def do_stuff(f):
 def dir_stuff(dir_name):
     import glob
     ncpu = psutil.cpu_count()/2
-    print 'number of cpus we are using: {}'.format(ncpu)
+    print 'number of cpus we are using: {0}'.format(ncpu)
     pprocess.pmap(do_stuff, glob.glob(dir_name + "*.json"), limit=ncpu)
         
 
