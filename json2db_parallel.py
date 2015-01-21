@@ -81,9 +81,10 @@ def do_stuff(dir_name,j):
     db_name = ''.join(parts[:-1]) + '.sqlite'
     if db_name + '.db' not in glob.glob(dir_name + "*.db"):
     	try:
-		do(db_name, j)	
+            do(db_name, j)	
     	except TypeError:
-		print "Couldn't  finish {0}".format(db_name)
+            print "Couldn't  finish {0}".format(db_name)
+            return -1    
 	
     return 0
 
@@ -94,6 +95,14 @@ def dir_stuff(dir_name):
     print 'number of cpus we are using: {0}'.format(ncpu), glob.glob(dir_name + "*.json")
 
     # pprocess.pmap(do_stuff, glob.glob(dir_name + "*.json"), limit=ncpu)
-    map(lambda f: do_stuff(dir_name, f), glob.glob(dir_name + "*.json"))    
+    files = glob.glob(dir_name + "*.json")
+    result = map(lambda f: do_stuff(dir_name, f), files)    
+    result = zip(result, files)
+    f = open('log.txt', 'w')
+    for k in result:
+        f.write(k + '\n')
 
+        
+        
+    
 dir_stuff(sys.argv[1])
