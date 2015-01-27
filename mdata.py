@@ -36,7 +36,12 @@ class mdata:
         self.num_mutants = len(_mutants)
         self.num_test = len(_tests)
 	df = data
-	print (df.values.nbytes + df.index.nbytes + df.columns.nbytes)/1024, self.num_mutants, self.num_test, db_file	
+#        print 'data loaded from {0}, into ~ {1}KB memory. Numeber of mutants: {2}, number of tests:{3}'.format( db_file, (df.values.nbytes + df.index.nbytes + df.columns.nbytes)/1024, self.num_mutants, self.num_test)
+    
+
+    def get_data(self):
+        return self.data
+
 
     def equivalent_mutants(self):
         data = self.data
@@ -54,7 +59,7 @@ class mdata:
 
 
     def op_subsumption(self):
-        data = self._data
+        data = self.data
         detected = data[data['Detected'] == 1]
         g = detected.groupby(['operator'])
         k = g['testId'].agg({'detectingTests':util.union_df})
@@ -72,6 +77,27 @@ class mdata:
                 'not_sub': not_sub_rel}
 
 
+    def sample(self, n):
+        import random
+        data = self.data
+        if len(data.index) < n:
+            return data
+        else:
+            sample_data = data.loc[random.sample(data.index, n)]
+            return sample_data
 
+
+    def mutation_score(self, data=None):
+        if data is  None:
+            data = self.data
+        size_mutants = len(data.index)
+        detected_mutatnts = len(data[data['Detected'] == 1].index)
+        if size_mutants!= 0: 
+            return  float(detected_mutatnts)/size_mutants
+        else:
+            return 0.
+        
+
+        
 
 
